@@ -1,38 +1,39 @@
-const express = require('express')
+const express = require('express');
 const bodyParser = require('body-parser');
-const { createJourney, updateJourney, trackJourney, expireJourneys } = require('../db')
+const { createJourney, updateJourney, getJourney, expireJourneys } = require('../db');
 
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const generateAPin = () =>
-  Math.floor(Math.random() * 10000);
-
-const getExpirationHour = () => {
-  return new Date().getHours() > 11
-    ? new Date().getHours() - 12
-    : new Date().getHours();
+const generateAPin = () => {
+  const pin = Math.floor(Math.random() * 10000);
+  return pin < 1000 ? generateAPin() : pin;
 };
 
-setInterval(() => { expireJourneys(new Date().getHours()); }, 1000 * 60 * 60)
+const getExpirationHour = () => {
+  const hour = new Date().getHours() > 11
+    ? new Date().getHours() - 12
+    : new Date().getHours();
+  return hour;
+};
 
-app.post('/makeAJourney', (req, res) => {
-  //RECIEVES NAME AND ETA
-  const pin = generateAPin()
-  const expiration = getExpirationHour()
-  createJourney(pin, req.body.name, expiration, req.body.eta, 'PENDING');
-  //RETURNS A PIN NUMBER
+setInterval(() => { expireJourneys(new Date().getHours()); }, 1000 * 60 * 60);
+
+app.post('/journey', (req, res) => {
+  const pin = generateAPin();
+  const expiration = getExpirationHour();
+  createJourney(pin, req.body.name, expiration, req.body.eta, 'PENDING')
+    .then(result => res.send(result));
 });
 
-app.put('/makeAJourney/:pin', (req, res) => {
-  //RECIEVES NAME, ETA, STATUS based on PIN
-  updateJourney(req.body.pin, req.body.name, req.body.eta);
-  //RETURNS NAME, ETA, STATUS, PIN
-});
+app.put('/journey/:pin', (req, res) =>
+  updateJourney(Number(req.params.pin), req.body.eta)
+    .then(result => res.send(result)));
 
-app.get('/trackAJourney/:pin', (req, res) => {
-  //BASED ON PIN
-  trackJourney(req.body.pin)
-  //RETURNS NAME, ETA, STATUS, PIN
-});
+
+app.get('/journey/:pin', (req, res) =>
+  getJourney(Number(req.params.pin))
+    .then(result => res.send(result)));
+
+app.listen(8082);

@@ -5,17 +5,19 @@ const createJourney = (pin, name, expiration, eta, status) =>
           JOURNEY
         (PIN, NAME, EXPIRATION, ETA, STATUS)
           VALUES
-        ($1, $2, $3, $4, $5),
-          RETURNING (PIN)`,
+        ($1, $2, $3, $4, $5)
+          RETURNING PIN`,
     [pin, name, expiration, eta, status]);
 
-const updateJourney = (pin, name, expiration, eta, status) =>
+const updateJourney = (pin, eta) =>
   query(`UPDATE JOURNEY
           SET
-        (NAME = $2, EXPIRATION = $3, ETA = $4, STATUS = $5)
+        ETA = $2
           WHERE
-        PIN = $1`,
-    [pin, name, expiration, eta, status]);
+        PIN = $1
+          RETURNING
+        ETA`,
+    [pin, eta]);
 
 const getJourney = pin =>
   query(`SELECT * FROM
