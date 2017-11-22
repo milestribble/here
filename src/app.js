@@ -5,6 +5,7 @@ const { createJourney, updateJourney, getJourney, expireJourneys } = require('..
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 const generateAPin = () => {
   const pin = Math.floor(Math.random() * 10000);
@@ -28,7 +29,7 @@ app.post('/journey', (req, res) => {
 });
 
 app.put('/journey/:pin', (req, res) =>
-  updateJourney(Number(req.params.pin), req.body.eta)
+  updateJourney(Number(req.params.pin), req.body.name, req.body.eta)
     .then(result => res.send(result)));
 
 

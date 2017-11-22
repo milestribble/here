@@ -1,23 +1,24 @@
 const { query } = require('./client.js');
 
-const createJourney = (pin, name, expiration, eta, status) =>
+const createJourney = (pin, name, eta, status, expiration) =>
   query(`INSERT INTO
           JOURNEY
         (PIN, NAME, EXPIRATION, ETA, STATUS)
           VALUES
         ($1, $2, $3, $4, $5)
           RETURNING PIN`,
-    [pin, name, expiration, eta, status]);
+    [pin, name, eta, status, expiration]);
 
-const updateJourney = (pin, eta) =>
+const updateJourney = (pin, name, eta) =>
   query(`UPDATE JOURNEY
           SET
-        ETA = $2
+        ETA = $2,
+        NAME = $3
           WHERE
         PIN = $1
           RETURNING
-        ETA`,
-    [pin, eta]);
+        *`,
+    [pin, eta, name]);
 
 const getJourney = pin =>
   query(`SELECT * FROM
